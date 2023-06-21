@@ -1,6 +1,5 @@
 import Head from "next/head";
 import {
-  Avatar,
   Button,
   Card,
   CardContent,
@@ -9,10 +8,12 @@ import {
   TextField,
 } from "@mui/material";
 import { useState } from "react";
+import AnimatedAvatar from "@/components/AnimatedAvatar";
 
 type Dot = {
   id: number;
   remaining: number;
+  isBig: boolean;
 };
 
 export default function Home() {
@@ -21,9 +22,9 @@ export default function Home() {
   const [dots, setDots] = useState<Dot[]>([]);
 
   function onClick() {
-    setDots([...dots, { id, remaining: seconds }]);
+    setDots([...dots, { id, remaining: seconds, isBig: false }]);
 
-    const timer = setInterval(() => {
+    const secondsTimer = setInterval(() => {
       setDots((dots) => {
         return dots
           .map((dot) => {
@@ -31,14 +32,27 @@ export default function Home() {
             return { ...dot, remaining: dot.remaining - 1 };
           })
           .filter((dot) => {
-            return dot.id !== id || dot.remaining > 0;
+            return dot.id !== id || dot.remaining >= 0;
           });
       });
     }, 1000);
 
+    const bouncingTimer = setInterval(() => {
+      setDots((dots) => {
+        return dots.map((dot) => {
+          if (dot.id !== id) return dot;
+          return { ...dot, isBig: !dot.isBig };
+        });
+      });
+    }, 500);
+
+    // Remove the timer 1 second after boiling
+    // Consider an extra second for popping animation
+    const delay = (seconds + 2) * 1000;
     setTimeout(() => {
-      clearInterval(timer);
-    }, (seconds + 1) * 1000);
+      clearInterval(secondsTimer);
+      clearInterval(bouncingTimer);
+    }, delay);
 
     setID(id + 1);
   }
@@ -84,9 +98,13 @@ export default function Home() {
                 {dots.map((dot, index) => {
                   return (
                     <Grid item xs={2} key={index}>
-                      <Avatar sx={{ bgcolor: "#fd9545", fontWeight: "bold" }}>
-                        {dot.remaining.toString()}
-                      </Avatar>
+                      <AnimatedAvatar
+                        sx={{ bgcolor: "#fd9545", fontWeight: "bold" }}
+                        isBig={dot.isBig}
+                        isPopping={dot.remaining === 0}
+                      >
+                        {dot.remaining === 0 ? "1" : dot.remaining.toString()}
+                      </AnimatedAvatar>
                     </Grid>
                   );
                 })}
