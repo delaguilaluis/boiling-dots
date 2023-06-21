@@ -22,6 +22,8 @@ export default function Home() {
   const [dots, setDots] = useState<Dot[]>([]);
 
   function onClick() {
+    if (!seconds) return;
+
     setDots([...dots, { id, remaining: seconds, isBig: false }]);
 
     const secondsTimer = setInterval(() => {
@@ -84,10 +86,11 @@ export default function Home() {
                     id="timer-input"
                     label="Enter boiling timer"
                     variant="standard"
+                    inputProps={{ inputMode: "numeric", pattern: "[0-9]*" }}
                     onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
                       setSeconds(Number.parseInt(event.target.value, 10));
                     }}
-                    value={seconds}
+                    value={seconds || 0}
                   />
                 </Grid>
                 <Grid item container xs={5} alignItems="center">
