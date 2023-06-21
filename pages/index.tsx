@@ -1,17 +1,48 @@
 import Head from "next/head";
-import { Inter } from "next/font/google";
 import {
-  TextField,
+  Avatar,
+  Button,
   Card,
   CardContent,
-  Button,
-  Box,
   Container,
+  Grid,
+  TextField,
 } from "@mui/material";
+import { useState } from "react";
 
-const inter = Inter({ subsets: ["latin"] });
+type Dot = {
+  id: number;
+  remaining: number;
+};
 
 export default function Home() {
+  const [seconds, setSeconds] = useState(5);
+  const [id, setID] = useState(1);
+  const [dots, setDots] = useState<Dot[]>([]);
+
+  function onClick() {
+    setDots([...dots, { id, remaining: seconds }]);
+
+    const timer = setInterval(() => {
+      setDots((dots) => {
+        return dots
+          .map((dot) => {
+            if (dot.id !== id) return dot;
+            return { ...dot, remaining: dot.remaining - 1 };
+          })
+          .filter((dot) => {
+            return dot.id !== id || dot.remaining > 0;
+          });
+      });
+    }, 1000);
+
+    setTimeout(() => {
+      clearInterval(timer);
+    }, (seconds + 1) * 1000);
+
+    setID(id + 1);
+  }
+
   return (
     <>
       <Head>
@@ -20,7 +51,7 @@ export default function Home() {
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
-      <main className={`${inter.className}`}>
+      <main>
         <Container
           sx={{
             display: "flex",
@@ -32,21 +63,34 @@ export default function Home() {
           maxWidth="lg"
         >
           <Card sx={{ maxWidth: 392, maxHeight: 400 }}>
-            <CardContent
-              sx={{
-                display: "flex",
-                justifyContent: "center",
-                alignItems: "center",
-              }}
-            >
-              <TextField
-                id="timer-input"
-                label="Enter boiling timer"
-                variant="standard"
-              />
-              <Button sx={{ marginLeft: 2 }} variant="contained">
-                Start boiling
-              </Button>
+            <CardContent>
+              <Grid container spacing={2}>
+                <Grid item xs={7}>
+                  <TextField
+                    id="timer-input"
+                    label="Enter boiling timer"
+                    variant="standard"
+                    onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
+                      setSeconds(Number.parseInt(event.target.value, 10));
+                    }}
+                    value={seconds}
+                  />
+                </Grid>
+                <Grid item container xs={5} alignItems="center">
+                  <Button variant="contained" onClick={onClick}>
+                    Start boiling
+                  </Button>
+                </Grid>
+                {dots.map((dot, index) => {
+                  return (
+                    <Grid item xs={2} key={index}>
+                      <Avatar sx={{ bgcolor: "#fd9545", fontWeight: "bold" }}>
+                        {dot.remaining.toString()}
+                      </Avatar>
+                    </Grid>
+                  );
+                })}
+              </Grid>
             </CardContent>
           </Card>
         </Container>
